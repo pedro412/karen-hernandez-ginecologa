@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "vimind-3526e"
+  },
+  "targets": {
+    "vimind-3526e": {
+      "hosting": {
+        "karen-hernandez-ginecologa": [
+          "karen-hernandez-ginecologa"
+        ]
+      }
+    }
+  }
+}
