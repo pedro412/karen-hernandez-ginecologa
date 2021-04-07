@@ -5,11 +5,30 @@ exports.helloHttp = (req, res) => {
   res.send(`Hello ${escapeHtml(req.query.name || req.body.name || 'World')}!`);
 };
 
-exports.KhgContactForm = (req, res) => {
-  if (req.method == 'POST') {
-    const { name, email, phone } = req.query;
+const runDBQuery = (query) => {
+  try {
+    const connection = mysql.createConnection({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+    });
+    connection.connect();
+    connection.query(query, (err, results, fields) => {
+      if (err) {
+        return Promise.reject('DB Error', err);
+      }
+    });
+    connection.end();
+    return Promise.resolve('ok');
+  } catch (error) {
+      return Promise.reject('DB Error', error);
+  }
+};
 
-    console.log(name, email, phone);
+exports.khgContactForm = (req, res) => {
+  if (req.method == 'POST') {
+    const { name, email, phone, comments } = req.query;
 
     if (!name || !email || !phone) {
       return res.status(400).json({
@@ -18,35 +37,20 @@ exports.KhgContactForm = (req, res) => {
       });
     }
 
-    const connection = mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-    });
+    const query = `INSERT INTO contactos (nombre,correo,celular,comentarios) 
+    VALUES (${mysql.escape(name)},${mysql.escape(email)},${mysql.escape(phone)},${mysql.escape(comments)})`;
 
-    connection.connect();
-
-    const query = `INSERT INTO contactos (nombre,correo,celular) VALUES (${connection.escape(name)},${connection.escape(email)},${connection.escape(phone)})`
-
-    console.log(query);
-
-    connection.query(query, (err, results, fields) => {
-        if (err) {
-          res.status(500).json({
-            status: 'error',
-            message: err,
-          });
-        }
-        console.log('was here');
-      }
-    );
-
-    connection.end();
-
-    return res.status(201).json({
-      status: 'ok',
-      message: `POST done`,
+    return runDBQuery(query).then((resp) => {
+      return res.status(201).json({
+        status: resp,
+        message: `POST done`,
+      });
+    }).catch(err => {
+      return res.status(500).json({
+        status: 'error',
+        message: 'db error',
+        err
+      });
     });
   }
 
