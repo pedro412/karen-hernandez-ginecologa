@@ -4,7 +4,11 @@ const mysql = require('mysql');
 const cors = require('cors')({ origin: true });
 
 const app = express();
-app.use(cors);
+
+const corsOptions = {
+  origin: 'https://karenhernandezginecologa.com/',
+  optionsSuccessStatus: 200
+}
 
 app.get('/', (req, res) => {
   res.status(200).json({
@@ -34,7 +38,7 @@ const runDBQuery = (query) => {
   }
 };
 
-app.post('/api/contactos', (req, res) => {
+app.post('/api/contactos', cors(corsOptions), (req, res) => {
   if (req.method == 'POST') {
     const { name, email, phone, comments } = req.query;
 
