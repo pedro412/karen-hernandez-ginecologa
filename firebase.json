@@ -1,3 +1,11 @@
 {
-
+  "hosting": {
+    "target": "karen-hernandez-ginecologa",
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
 }
