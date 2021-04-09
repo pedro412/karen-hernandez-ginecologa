@@ -4,16 +4,12 @@ const mysql = require('mysql');
 const cors = require('cors')({ origin: true });
 
 const app = express();
-
-const corsOptions = {
-  origin: 'https://karenhernandezginecologa.com/',
-  optionsSuccessStatus: 200
-}
+app.use(cors);
 
 app.get('/', (req, res) => {
   res.status(200).json({
     status: 'ok',
-    message: 'welcome',
+    message: 'welcome!',
   });
 });
 
@@ -38,7 +34,7 @@ const runDBQuery = (query) => {
   }
 };
 
-app.post('/api/contactos', cors(corsOptions), (req, res) => {
+app.post('/api/contactos', (req, res) => {
   if (req.method == 'POST') {
     const { name, email, phone, comments } = req.query;
 
@@ -49,7 +45,6 @@ app.post('/api/contactos', cors(corsOptions), (req, res) => {
       });
     }
 
-    // eslint-disable-next-line max-len
     const query = `INSERT INTO contactos (nombre,correo,celular,comentarios) VALUES (${mysql.escape(
       name
     )},${mysql.escape(email)},${mysql.escape(phone)},${mysql.escape(
