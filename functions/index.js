@@ -14,7 +14,35 @@ app.get('/', (req, res) => {
   });
 });
 
-const sendEmail = async ({ name, email, phone, comments }) => {
+const getConfirmationTemplate = (toEmail) => {
+  return {
+    from: '"Hola 👋" <hola@karenhernandezginecologa.com>',
+    to: toEmail,
+    subject: 'Tus solicitud ha sido confirmada',
+    text: 'Datos recibidos',
+    html: '<h1>Gracias, pronto nos pondremos en contacto.</h1>',
+  };
+};
+
+const getTemplate = ({ name, email, phone, comments, type }) => {
+  return {
+    from: '"Hola 👋" <hola@karenhernandezginecologa.com>',
+    to: 'hola@karenhernandezginecologa.com',
+    subject: `Nuevo registro (${type})`,
+    text: `Nuevo ${type}`,
+    html: `
+    <h1>Nuevo contacto</h1>
+      <ul>
+        <li>Nombre: ${name}</li>
+        <li>Correo: ${email}</li>
+        <li>Telefono: ${phone}</li>
+        <li>Comentarios: ${comments}</li>
+      </ul>
+    `,
+  };
+};
+
+const sendEmail = async ({ name, email, phone, comments, type }) => {
   let transporter = nodemailer.createTransport({
     host: 'smtp.titan.email',
     port: 465,
@@ -25,29 +53,11 @@ const sendEmail = async ({ name, email, phone, comments }) => {
     },
   });
 
-  await transporter.sendMail({
-    from: '"Hola 👋" <hola@karenhernandezginecologa.com>',
-    to: email,
-    subject: 'Tus solicitud ha sido confirmada',
-    text: 'Datos recibidos',
-    html: '<h1>Gracias, pronto nos pondremos en contacto.</h1>',
-  });
+  await transporter.sendMail(getConfirmationTemplate(email));
 
-  await transporter.sendMail({
-    from: '"Hola 👋" <hola@karenhernandezginecologa.com>',
-    to: 'hola@karenhernandezginecologa.com',
-    subject: 'Nuevo registro (Contacto)',
-    text: 'Nuevo contacto',
-    html: `
-    <h1>Nuevo contacto</h1>
-      <ul>
-        <li>Nombre: ${name}</li>
-        <li>Correo: ${email}</li>
-        <li>Telefono: ${phone}</li>
-        <li>Comentarios: ${comments}</li>
-      </ul>
-    `,
-  });
+  await transporter.sendMail(
+    getTemplate({ name, email, phone, comments, type })
+  );
 };
 
 const runDBQuery = (query) => {
@@ -87,7 +97,9 @@ app.post('/api/contactos', (req, res) => {
 
   return runDBQuery(query)
     .then((resp) => {
-      sendEmail({ name, email, phone, comments }).catch(console.error);
+      sendEmail({ name, email, phone, comments, type: 'Contacto' }).catch(
+        console.error
+      );
 
       return res.status(201).json({
         status: resp,
