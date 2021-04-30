@@ -24,25 +24,7 @@ const getConfirmationTemplate = (toEmail) => {
   };
 };
 
-const getTemplate = ({ name, email, phone, comments, type }) => {
-  return {
-    from: '"Hola 👋" <hola@karenhernandezginecologa.com>',
-    to: 'hola@karenhernandezginecologa.com',
-    subject: `Nuevo registro (${type})`,
-    text: `Nuevo ${type}`,
-    html: `
-    <h1>Nuevo contacto</h1>
-      <ul>
-        <li>Nombre: ${name}</li>
-        <li>Correo: ${email}</li>
-        <li>Telefono: ${phone}</li>
-        <li>Comentarios: ${comments}</li>
-      </ul>
-    `,
-  };
-};
-
-const sendEmail = async ({ name, email, phone, comments, type }) => {
+const sendEmail = async (template, userEmail) => {
   let transporter = nodemailer.createTransport({
     host: 'smtp.titan.email',
     port: 465,
@@ -53,11 +35,9 @@ const sendEmail = async ({ name, email, phone, comments, type }) => {
     },
   });
 
-  await transporter.sendMail(getConfirmationTemplate(email));
+  await transporter.sendMail(getConfirmationTemplate(userEmail));
 
-  await transporter.sendMail(
-    getTemplate({ name, email, phone, comments, type })
-  );
+  await transporter.sendMail(template);
 };
 
 const runDBQuery = (query) => {
@@ -97,9 +77,74 @@ app.post('/api/contactos', (req, res) => {
 
   return runDBQuery(query)
     .then((resp) => {
-      sendEmail({ name, email, phone, comments, type: 'Contacto' }).catch(
-        console.error
-      );
+      const template = {
+        from: '"Hola 👋" <hola@karenhernandezginecologa.com>',
+        to: 'hola@karenhernandezginecologa.com',
+        subject: 'Nuevo registro (Contacto)',
+        text: 'Nuevo Contacto',
+        html: `
+        <h1>Nuevo contacto</h1>
+          <ul>
+            <li>Nombre: ${name}</li>
+            <li>Correo: ${email}</li>
+            <li>Telefono: ${phone}</li>
+            <li>Comentarios: ${comments}</li>
+          </ul>
+        `,
+      };
+
+      sendEmail(template, email).catch(console.error);
+
+      return res.status(201).json({
+        status: resp,
+        message: `POST done`,
+      });
+    })
+    .catch((err) => {
+      return res.status(500).json({
+        status: 'error',
+        message: 'db error',
+        err,
+      });
+    });
+});
+
+app.post('/api/consultas', (req, res) => {
+  const { name, email, phone, service, date } = req.query;
+
+  if (!name || !email || !phone || !service || !date) {
+    return res.status(400).json({
+      status: 'invalid',
+      message: 'missing data',
+    });
+  }
+
+  const query = `INSERT INTO consultas (nombre,correo,telefono,servicio,fecha) VALUES (${mysql.escape(
+    name
+  )},${mysql.escape(email)},${mysql.escape(phone)},${mysql.escape(
+    service
+  )},${mysql.escape(date)})`;
+
+  return runDBQuery(query)
+    .then((resp) => {
+      const template = {
+        from: '"Hola 👋" <hola@karenhernandezginecologa.com>',
+        to: 'hola@karenhernandezginecologa.com',
+        subject: 'Nuevo registro (Consulta)',
+        text: 'Nueva Consulta',
+        html: `
+        <h1>Datos de la consulta</h1>
+          <ul>
+            <li>Nombre: ${name}</li>
+            <li>Correo: ${email}</li>
+            <li>Telefono: ${phone}</li>
+            <li>Servicio: ${service}</li>
+            <li>Fecha de consulta: ${date}</li>
+          </ul>
+        `,
+      };
+
+      sendEmail(template, email).catch(console.error);
 
       return res.status(201).json({
         status: resp,

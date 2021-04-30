@@ -28,16 +28,18 @@ const postFormFetch = (endpoint) => {
 agendaForm.addEventListener('submit', (event) => {
   event.preventDefault();
 
-  const formValue = {
+  const formValues = {
     name: event.target[0].value,
     email: event.target[1].value,
     phone: event.target[2].value,
-    service: event.target[2].value,
-    date: event.target[3].value,
-    time: event.target[4].value,
+    service: event.target[3].value,
+    date: event.target[4].value,
   };
 
-  agendaForm.reset();
+  const { name, email, phone, service, date } = formValues;
+  const endpoint = `${apiURL}/consultas?name=${name}&email=${email}&phone=${phone}&service=${service}&date=${date}`;
+  postFormFetch(endpoint);
+
   alert('datos enviados');
 });
 
