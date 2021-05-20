@@ -1,5 +1,4 @@
 const contactForm = document.getElementById('contact-test');
-const agendaForm = document.getElementById('contact-form');
 const apiURL = 'https://us-central1-vimind-3526e.cloudfunctions.net/app/api';
 const statusMessage = {
   ok: 'Datos enviados.',
@@ -24,24 +23,6 @@ const postFormFetch = (endpoint) => {
       }
     });
 };
-
-agendaForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-
-  const formValues = {
-    name: event.target[0].value,
-    email: event.target[1].value,
-    phone: event.target[2].value,
-    service: event.target[3].value,
-    date: event.target[4].value,
-  };
-
-  const { name, email, phone, service, date } = formValues;
-  const endpoint = `${apiURL}/consultas?name=${name}&email=${email}&phone=${phone}&service=${service}&date=${date}`;
-  postFormFetch(endpoint);
-
-  alert('datos enviados');
-});
 
 contactForm.addEventListener('submit', (event) => {
   event.preventDefault();
